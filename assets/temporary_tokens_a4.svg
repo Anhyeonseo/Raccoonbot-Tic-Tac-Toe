@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="210mm" height="297mm" viewBox="0 0 210 297">
+  <rect width="210" height="297" fill="white"/>
+  <text x="105" y="22" text-anchor="middle" font-family="sans-serif" font-size="7" font-weight="bold">임시 비전 테스트 말</text>
+  <text x="105" y="31" text-anchor="middle" font-family="sans-serif" font-size="4">오려서 두꺼운 카드·병뚜껑 위에 부착 (지름 34 mm)</text>
+  <g stroke="#7a0000" stroke-width="0.5">
+    <circle cx="55" cy="70" r="17" fill="#e60000"/><circle cx="105" cy="70" r="17" fill="#e60000"/><circle cx="155" cy="70" r="17" fill="#e60000"/>
+  </g>
+  <g fill="white" font-family="sans-serif" font-size="9" font-weight="bold" text-anchor="middle">
+    <text x="55" y="73">R</text><text x="105" y="73">R</text><text x="155" y="73">R</text>
+  </g>
+  <g stroke="#9a8200" stroke-width="0.5">
+    <circle cx="55" cy="125" r="17" fill="#f2d500"/><circle cx="105" cy="125" r="17" fill="#f2d500"/><circle cx="155" cy="125" r="17" fill="#f2d500"/>
+  </g>
+  <g fill="#333" font-family="sans-serif" font-size="9" font-weight="bold" text-anchor="middle">
+    <text x="55" y="128">Y</text><text x="105" y="128">Y</text><text x="155" y="128">Y</text>
+  </g>
+  <text x="105" y="164" text-anchor="middle" font-family="sans-serif" font-size="4">주의: 종이만으로는 로봇 집기 시험 불가. 색 인식·게임 흐름 시험용.</text>
+  <line x1="80" y1="185" x2="130" y2="185" stroke="black" stroke-width="1"/>
+  <text x="105" y="192" text-anchor="middle" font-family="sans-serif" font-size="3.5">인쇄 확인용 50 mm</text>
+</svg>

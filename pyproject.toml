@@ -8,9 +8,21 @@ version = "0.1.0"
 description = "Camera-driven moving three-in-a-row game with RaccoonBot"
 readme = "README.md"
 requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24,<3",
+    "opencv-python>=4.8,<5",
+]
 
 [project.optional-dependencies]
-dev = ["pytest>=8"]
+dev = ["pytest>=8,<9"]
+
+[project.scripts]
+raccoonbot-booth = "raccoonbot_game.tools.booth_demo:main"
+raccoonbot-sim = "raccoonbot_game.tools.simulate_game:main"
+raccoonbot-calibrate = "raccoonbot_game.tools.create_calibration:main"
+raccoonbot-inspect = "raccoonbot_game.tools.inspect_board_image:main"
+raccoonbot-synthetic = "raccoonbot_game.tools.generate_synthetic_data:main"
+raccoonbot-validate-poses = "raccoonbot_game.tools.validate_pose_profile:main"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
@@ -18,4 +30,3 @@ testpaths = ["tests"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
-

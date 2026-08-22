@@ -12,9 +12,15 @@ build/
 # Local calibration and captured images
 data/calibration/*.json
 data/captures/
+work/
+logs/
+
+# Machine-specific calibration and taught poses
+config/vision.json
+config/robot_poses.json
+config/*.local.json
 
 # Editors and OS files
 .idea/
 .vscode/
 .DS_Store
-

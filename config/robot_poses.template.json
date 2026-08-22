@@ -1,0 +1,19 @@
+{
+  "_warning": "실제 라쿤봇에서 teaching한 4축 각도로 null을 모두 교체한 뒤 파일명을 robot_poses.json으로 변경하세요. null 상태로는 로드되지 않습니다.",
+  "max_speed": 20,
+  "poses": {
+    "home": null,
+    "cell_1_hover": null, "cell_1_grasp": null,
+    "cell_2_hover": null, "cell_2_grasp": null,
+    "cell_3_hover": null, "cell_3_grasp": null,
+    "cell_4_hover": null, "cell_4_grasp": null,
+    "cell_5_hover": null, "cell_5_grasp": null,
+    "cell_6_hover": null, "cell_6_grasp": null,
+    "cell_7_hover": null, "cell_7_grasp": null,
+    "cell_8_hover": null, "cell_8_grasp": null,
+    "cell_9_hover": null, "cell_9_grasp": null,
+    "stock_1_hover": null, "stock_1_grasp": null,
+    "stock_2_hover": null, "stock_2_grasp": null,
+    "stock_3_hover": null, "stock_3_grasp": null
+  }
+}
