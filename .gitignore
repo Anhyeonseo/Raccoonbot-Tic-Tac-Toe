@@ -1,0 +1,20 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+
+# Local calibration and captured images
+data/calibration/*.json
+data/captures/
+
+# Editors and OS files
+.idea/
+.vscode/
+.DS_Store
+
