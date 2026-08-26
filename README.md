@@ -30,6 +30,12 @@ Mini Dongle+ BLE 통신을 실제 장비에서 확인했습니다. 관찰 `home`
 후속 안정화 범위입니다. 자세한 실기 결과는
 [`docs/PROJECT_STATUS_KR.md`](docs/PROJECT_STATUS_KR.md)에 정리되어 있습니다.
 
+## 시연 영상
+
+[![RaccoonBot 3목 게임 시연 영상](assets/demo-thumbnail.jpg)]([https://drive.google.com/file/d/파일_ID/view?usp=sharing](https://drive.google.com/file/d/1d0tjxeQ3BWgaXYCpIjII7FlVT4bhdUxd/view?usp=drive_link))
+
+이미지를 클릭하면 Google Drive에서 시연 영상을 볼 수 있습니다.
+
 ## 확정 규칙
 
 1. 참가자가 선공한다.
