@@ -8,7 +8,7 @@ from pathlib import Path
 JointPose = tuple[float, float, float, float]
 JOINT_LIMITS = ((-120.0, 120.0), (-90.0, 30.0), (-150.0, 0.0), (-105.0, 105.0))
 REQUIRED_POSES = frozenset(
-    {"home"}
+    {"home", "transit"}
     | {f"cell_{cell}_{level}" for cell in range(1, 10) for level in ("hover", "grasp")}
     | {f"stock_{stock}_{level}" for stock in range(1, 4) for level in ("hover", "grasp")}
 )
@@ -41,6 +41,9 @@ class RobotPoseProfile:
     @classmethod
     def load(cls, path: str | Path) -> "RobotPoseProfile":
         raw = json.loads(Path(path).read_text(encoding="utf-8"))
+        provisional = raw.get("_provisional_poses", [])
+        if provisional:
+            raise ValueError(f"provisional robot poses must be retaught: {sorted(provisional)}")
         unfinished = [name for name, values in raw["poses"].items() if values is None]
         if unfinished:
             raise ValueError(f"teaching values are still null: {unfinished}")

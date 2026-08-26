@@ -75,6 +75,16 @@ class GameSession:
         if self.game.result is not GameResult.IN_PROGRESS:
             return None
 
+        return self.play_robot_turn()
+
+    def play_robot_turn(self) -> RobotTurn:
+        if self.pending_robot_turn is not None:
+            raise RuntimeError("이전 로봇 수의 카메라 검증이 끝나지 않았습니다.")
+        if self.game.result is not GameResult.IN_PROGRESS:
+            raise RuntimeError("종료된 게임에서는 로봇 수를 둘 수 없습니다.")
+        if self.game.turn is not Player.ROBOT:
+            raise RuntimeError("게임 상태의 현재 차례가 로봇과 일치하지 않습니다.")
+
         decision = decide_robot_action(self.game, policy=self.policy, rng=self.rng)
         expected = self.game.clone()
         expected.apply(decision.action)

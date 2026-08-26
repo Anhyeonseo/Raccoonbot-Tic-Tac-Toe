@@ -87,9 +87,10 @@ raccoonbot-calibrate frame.png config/vision.json
 
 ## 로봇 자세 파일
 
-`config/robot_poses.template.json`에는 필요한 25개 자세 이름이 모두 있습니다.
+`config/robot_poses.template.json`에는 필요한 26개 자세 이름이 모두 있습니다.
 
 - home 1개
+- transit 1개
 - 9칸 × hover/grasp = 18개
 - 노랑 말 대기 위치 3개 × hover/grasp = 6개
 

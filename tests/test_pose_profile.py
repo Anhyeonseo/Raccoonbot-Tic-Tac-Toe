@@ -28,3 +28,15 @@ def test_profile_rejects_joint_limit_violation() -> None:
     poses["home"] = (121.0, -10.0, -100.0, 20.0)
     with pytest.raises(ValueError, match="joint 1"):
         RobotPoseProfile(poses)
+
+
+def test_provisional_pose_file_is_rejected(tmp_path) -> None:
+    poses = {name: list(values) for name, values in valid_poses().items()}
+    path = tmp_path / "poses.json"
+    path.write_text(
+        json.dumps({"_provisional_poses": ["home"], "poses": poses}),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="provisional robot poses"):
+        RobotPoseProfile.load(path)

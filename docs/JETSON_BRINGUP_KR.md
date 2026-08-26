@@ -25,23 +25,25 @@
 
 기존 OS가 정상 부팅된다면 즉시 재설치하지 않는다. 먼저 이 문서의 진단 스크립트를 실행한 뒤 유지 또는 재설치를 결정한다.
 
-## 2. 권장 JetPack 기준
+## 2. 확정 JetPack 기준
 
-이 프로젝트의 우선순위는 최신 기능보다 카메라, Python, OpenCV와 USB 직렬 통신의 안정성이다.
+2026-08-26 실제 장비에서 다음 구성을 확인했다.
 
-- 우선안: JetPack 6.2.3, Jetson Linux 36.5.2, Ubuntu 22.04
-- 신규 JetPack 7 계열은 당장 필요한 기능이 없으므로 MVP 이후 검토
-- 기존에 정상 동작하는 JetPack 6.x가 있다면 우선 그대로 사용
-- JetPack 5.x 또는 오래된 공장 펌웨어라면 공식 절차에 따라 펌웨어 및 OS 업데이트 검토
+- Jetson Orin Nano Developer Kit
+- TAMMUZ M740Q 512GB NVMe (`/dev/nvme0n1p1` 루트 파일시스템)
+- Jetson ISO r39.2.1
+- JetPack 7.2.1 / Jetson Linux R39.2.1
+- Ubuntu 24.04.3 LTS, aarch64
+- CUDA 13.2, OpenCV 4.8.0
 
-JetPack 6.2.3용 Orin Nano SD 카드 이미지는 별도로 제공되지 않을 수 있다. NVIDIA 공식 안내는 JetPack 6.2.1 SD 카드 이미지를 설치한 뒤 APT로 6.2.3까지 업데이트하는 경로를 제공한다.
+Jetson ISO를 USB 메모리에 원시 이미지로 기록하고, UEFI/QSPI 업데이트 후 NVMe를 설치 대상으로 선택했다. JetPack SDK 구성요소는 첫 부팅 후 `sudo apt install nvidia-jetpack`으로 설치했다.
 
-주의: OS 플래시는 저장장치 내용을 지울 수 있다. 현재 버전과 백업 필요성을 확인하기 전에는 플래시하지 않는다.
+주의: ISO USB 생성과 NVMe 설치는 선택한 저장장치 내용을 지운다. 장치 이름과 용량을 확인하기 전에는 진행하지 않는다.
 
 공식 자료:
 
-- <https://developer.nvidia.com/embedded/jetpack-sdk-623>
-- <https://developer.nvidia.com/embedded/learn/get-started-jetson-orin-nano-devkit>
+- <https://docs.nvidia.com/jetson/orin-nano-devkit/user-guide/latest/quick_start.html>
+- <https://docs.nvidia.com/jetson/orin-nano-devkit/user-guide/latest/setup_jetpack.html>
 
 ## 3. 최초 부팅
 
@@ -211,7 +213,7 @@ IP와 사용자 이름을 실제 값으로 교체한다.
 
 ```bash
 sudo apt update
-sudo apt install python3-venv python3-pip python3-opencv v4l-utils usbutils ffmpeg
+sudo apt install python3.12-venv python3-pip v4l-utils usbutils ffmpeg rsync
 ```
 
 Git 설치와 저장소 동기화는 사용자가 별도로 관리한다.
@@ -222,6 +224,14 @@ Python 가상환경은 시스템 OpenCV와 Jetson 라이브러리를 사용할 �
 python3 -m venv --system-site-packages .venv
 source .venv/bin/activate
 python -c 'import cv2; print(cv2.__version__)'
+```
+
+JetPack이 제공한 OpenCV와 NumPy를 유지하기 위해 프로젝트는 의존성을 다시 받지 않고 설치한다.
+
+```bash
+python -m pip install --no-deps -e .
+python -m pip install 'pytest>=8,<9'
+python -m pytest -q
 ```
 
 ## 11. 카메라 브링업
@@ -301,4 +311,3 @@ sudo usermod -aG dialout "$USER"
 - 카메라 또는 동글 연결이 끊겼을 때 진단 방법을 알고 있다.
 
 이 조건을 만족한 뒤 게임 보드 인식과 로봇 티칭 개발로 진행한다.
-

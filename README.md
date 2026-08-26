@@ -8,9 +8,27 @@ RGB 카메라와 Jetson Orin Nano, RaccoonBot을 이용한 3개 말 이동형 3�
 
 ## 현재 상태
 
-게임 규칙, 불완전 AI, 합성 영상 기반 보드 인식, 물리 행동 검증, 가상 로봇, 공식 `robomation.RaccoonBot` 어댑터, 부스 UI 데모까지 구현되어 있습니다. 데스크톱 자동 테스트 43개를 통과했습니다.
+**1차 MVP 구현과 실제 장비 시연을 완료했습니다.** 게임 규칙, 불완전 AI,
+보드 인식, 물리 행동 검증, 공식 `robomation.RaccoonBot` 어댑터, 실제 장비
+게임 러너와 부스 UI 데모가 구현되어 있습니다. 자동 테스트 87개를 데스크톱과
+Jetson에서 통과했습니다.
 
-실제 Jetson·카메라·Mini Dongle+ 연결, 현장 색상 캘리브레이션, 25개 로봇 자세 teaching은 하드웨어 준비 후 진행합니다.
+Jetson Orin Nano NVMe의 JetPack 7.2.1, Trust QHD Webcam의 1080p MJPEG,
+Mini Dongle+ BLE 통신을 실제 장비에서 확인했습니다. 관찰 `home`, 높은 운반
+`transit`, 9개 보드 칸과 노란 말 대기 위치 3곳의 hover/grasp를 포함한 26개
+자세를 모두 teaching했고, 각 위치의 실제 집기·놓기와 셀 간 자유 이동을
+검증했습니다.
+
+최종 실기에서는 고정 노출·화이트밸런스와 수동 보드 모서리 보정으로 빨강·노랑
+6개를 안정적으로 인식했습니다. 빈 판에서 시작한 실제 게임 2판을 끝까지
+진행했고, 사람 수 인식, AI 판단, 로봇 배치, 동작 후 카메라 검증과 승리 판정이
+연속 동작했습니다. 운반 중에는 집은 말을 `transit`까지 들어 올린 뒤 목표 칸으로
+이동해 다른 말을 건드리지 않도록 했습니다.
+
+현재 실제 게임은 CLI의 `Enter` 입력으로 운영합니다. 전체 화면 부스 UI와 실제
+장비의 직접 연결, USB HID 굿즈 버튼, 장시간 반복 운전과 비상정지 리허설은
+후속 안정화 범위입니다. 자세한 실기 결과는
+[`docs/PROJECT_STATUS_KR.md`](docs/PROJECT_STATUS_KR.md)에 정리되어 있습니다.
 
 ## 확정 규칙
 
@@ -67,11 +85,21 @@ RGB Camera
 - [x] 카메라 기반 로봇 동작 결과 검증 상태기
 - [x] 합성 이미지, 캘리브레이션, 자세 검증 CLI
 - [x] A4 임시 보드와 말
-- [ ] 실제 카메라 기준 캘리브레이션 값 저장
-- [ ] 실제 9칸/3개 대기 위치 자세 teaching
-- [ ] Jetson ARM64 + Mini Dongle+ 통신 확인
+- [x] Jetson Orin Nano NVMe·JetPack 7.2.1·SSH 브링업
+- [x] 실제 카메라 기준 임시 캘리브레이션과 정지 이미지 인식
+- [x] 실제 카메라 실시간 연속 인식
+- [x] 실제 9칸 hover/grasp teaching 및 제자리 픽앤플레이스 검증
+- [x] 실제 3개 대기 위치 hover/grasp teaching 및 제자리 픽앤플레이스 검증
+- [x] Jetson ARM64 + Mini Dongle+ 통신 확인
+- [x] J1 저속 왕복 및 DC 그리퍼 단독 안전 시험
+- [x] 물리 Teach 버튼 기반 자세 저장 도구와 `home` 저장
+- [x] 1~9번 전체 실제 말 제자리 픽앤플레이스
+- [x] 높은 `transit`을 경유하는 실제 말 운반
+- [x] 실제 카메라·로봇 게임 러너와 `Enter` 턴 입력
+- [x] 빈 판에서 실제 게임 2판 완주 및 시연 촬영
 - [x] 하드웨어 없는 부스용 전체 화면 UI 데모
-- [ ] 실제 카메라/로봇과 부스 UI 연결
+- [ ] 실제 카메라·로봇 게임 러너와 전체 화면 부스 UI 통합
+- [ ] USB HID 굿즈 버튼 연결
 - [ ] 반복 운전 및 안전 테스트
 
 ## 실행
@@ -98,6 +126,69 @@ raccoonbot-booth --windowed
 ```bash
 raccoonbot-sim
 raccoonbot-sim --games 1000 --seed 2026
+```
+
+Jetson의 실제 카메라에서 안정화된 보드 상태를 읽습니다. 5프레임 중 4프레임이 일치해야 출력되며, `--frames 0`은 `Ctrl+C`까지 계속 실행합니다.
+
+```bash
+bash scripts/configure_camera.sh /dev/video0
+raccoonbot-live config/vision.json --frames 120 --save-warped work/live-warped.jpg
+```
+
+실제 판정 전에는 기본 30프레임을 워밍업으로 버립니다. 카메라를 다시 연결하거나 Jetson을 재부팅하면 고정 카메라 설정 스크립트를 다시 실행합니다. 현장 조명이 달라지면 수동값을 그대로 사용하지 말고 캘리브레이션과 함께 다시 측정합니다.
+
+현재 자세를 바로 저장하거나, 모터를 해제한 뒤 물리 Teach 버튼으로 한 자세를 저장합니다.
+
+```bash
+raccoonbot-teach-pose home --capture-current
+raccoonbot-teach-pose cell_1_hover --confirm-manual-teaching
+raccoonbot-teach-pose stock_1_grasp --start-from stock_1_hover \
+  --confirm-manual-teaching
+```
+
+수동 teaching 중에는 팔이 중력으로 내려올 수 있으므로 반드시 손으로 받치고 천천히 움직입니다.
+
+1번 칸의 hover/grasp 자세를 저장한 뒤, 로봇을 `transit`에 놓고 실제 말의 제자리 집기·놓기를 시험합니다.
+
+```bash
+raccoonbot-smoke-pick config/robot_poses.json --cell 1 --speed 10 --confirm-motion
+raccoonbot-smoke-pick config/robot_poses.json --stock 1 --speed 10 --confirm-motion
+```
+
+대기 말을 보드에 배치하거나 보드의 말을 원하는 빈칸으로 옮기는 종단 간 시험:
+
+```bash
+raccoonbot-smoke-transfer config/robot_poses.json --stock 1 --cell 5 \
+  --speed 10 --confirm-motion
+raccoonbot-smoke-transfer config/robot_poses.json --from-cell 5 --cell 9 \
+  --speed 10 --confirm-motion
+```
+
+실제 게임 운반은 말을 집은 뒤 항상 높은 `transit` 자세까지 상승한 다음
+목표 칸으로 이동합니다. 부스용 검증 속도는 `45`, 관절 보간 간격은 `6°`를
+기준으로 사용합니다.
+
+실제 카메라와 로봇으로 한 게임을 진행합니다. 사람은 말을 놓고 작업 영역에서 손을 뺀 뒤 `Enter`를 눌러 턴 완료를 알립니다.
+
+```bash
+bash scripts/configure_camera.sh /dev/video0
+raccoonbot-play-hardware --joint-step 6 --seed 0 --confirm-hardware
+```
+
+새 게임은 반드시 빈 판에서 시작합니다. 프로그램이 `사람 차례입니다`를 출력한
+뒤에만 빨간 말을 놓고 `Enter`를 누릅니다. 중단된 배치 단계를 물리 보드 상태에서
+이어갈 때만 `--resume-placement`를 추가합니다.
+
+안전 중심의 현재 설정은 로봇 한 수에 약 1분 30초~2분이 걸릴 수 있습니다.
+속도를 더 높이려면 행사 전에 전체 셀 조합과 반복 운전을 다시 검증해야 합니다.
+
+현장 최종형에서는 별도 굿즈 버튼을 USB HID 키보드의 `Enter` 입력으로 연결합니다. 따라서 게임 상태기와 카메라 검증 로직을 바꾸지 않고 입력 장치만 교체할 수 있습니다. 완료 버튼은 턴 제출용이며 비상정지와는 별도로 운용합니다.
+
+그리퍼를 작동하지 않고 잠긴 셀의 hover/grasp 경로만 검증할 때는 다음처럼 실행합니다.
+
+```bash
+raccoonbot-smoke-pick config/robot_poses.json --cell 7 --speed 10 \
+  --dry-run --allow-provisional-cell --confirm-motion
 ```
 
 ## 저장소 구조

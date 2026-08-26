@@ -9,14 +9,17 @@ def test_stock_to_cell_uses_safe_hover_sequence() -> None:
     assert robot.commands == [
         "move:home",
         "gripper:open",
+        "move:transit",
         "move:stock_1_hover",
         "move:stock_1_grasp",
         "gripper:close",
         "move:stock_1_hover",
+        "move:transit",
         "move:cell_5_hover",
         "move:cell_5_grasp",
         "gripper:open",
         "move:cell_5_hover",
+        "move:transit",
         "move:home",
     ]
 

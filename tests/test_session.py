@@ -53,3 +53,17 @@ def test_human_win_finishes_without_robot_motion() -> None:
     assert session.status is SessionStatus.FINISHED
     assert session.game.result is GameResult.HUMAN_WIN
     assert robot.commands == []
+
+
+def test_robot_turn_can_be_started_from_a_resumed_game() -> None:
+    robot = SimulatedRobot()
+    game = Game(
+        board=[None, None, None, None, Player.HUMAN, None, None, Player.ROBOT, Player.HUMAN],
+        turn=Player.ROBOT,
+    )
+    session = GameSession(MotionPlanner(robot), game=game, rng=random.Random(0))
+
+    pending = session.play_robot_turn()
+
+    assert pending is session.pending_robot_turn
+    assert "move:stock_2_grasp" in robot.commands

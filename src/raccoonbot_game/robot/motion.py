@@ -19,7 +19,12 @@ def _stock_name(index: int) -> str:
 
 @dataclass
 class MotionPlanner:
-    """Emit a conservative pick-and-place sequence using taught pose names."""
+    """Emit a conservative pick-and-place sequence using taught pose names.
+
+    ``home`` is the installation-specific camera-clear observation pose.
+    ``transit`` is a compact intermediate pose used before crossing between the
+    observation pose and any board/stock hover pose.
+    """
 
     robot: RobotDriver
 
@@ -34,14 +39,20 @@ class MotionPlanner:
     def _pick_and_place(self, source: str, target: str) -> None:
         self.robot.move_to("home")
         self.robot.open_gripper()
+        self.robot.move_to("transit")
         self.robot.move_to(f"{source}_hover")
         self.robot.move_to(f"{source}_grasp")
         self.robot.close_gripper()
         self.robot.move_to(f"{source}_hover")
+        # Never sweep a held piece directly across the board.  Folding through
+        # the high transit pose keeps the gripper and payload clear of pieces
+        # that may be standing in intervening cells.
+        self.robot.move_to("transit")
         self.robot.move_to(f"{target}_hover")
         self.robot.move_to(f"{target}_grasp")
         self.robot.open_gripper()
         self.robot.move_to(f"{target}_hover")
+        self.robot.move_to("transit")
         self.robot.move_to("home")
 
 
