@@ -7,6 +7,7 @@ name = "raccoonbot-vision-three-in-a-row"
 version = "0.1.0"
 description = "Camera-driven moving three-in-a-row game with RaccoonBot"
 readme = "README.md"
+license = { file = "LICENSE" }
 requires-python = ">=3.10"
 dependencies = [
     "numpy>=1.24,<3",
@@ -15,6 +16,9 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8,<9"]
+
+[project.urls]
+Repository = "https://github.com/Anhyeonseo/Raccoonbot-Vision-Three-in-a-row"
 
 [project.scripts]
 raccoonbot-booth = "raccoonbot_game.tools.booth_demo:main"
@@ -29,7 +33,9 @@ raccoonbot-teach-pose = "raccoonbot_game.tools.teach_pose:main"
 raccoonbot-smoke-transition = "raccoonbot_game.tools.smoke_test_transition:main"
 raccoonbot-smoke-pick = "raccoonbot_game.tools.smoke_test_pick:main"
 raccoonbot-smoke-transfer = "raccoonbot_game.tools.smoke_test_transfer:main"
+raccoonbot-smoke-cell-sweep = "raccoonbot_game.tools.smoke_test_cell_sweep:main"
 raccoonbot-play-hardware = "raccoonbot_game.tools.play_hardware:main"
+raccoonbot-web = "raccoonbot_game.tools.web_hardware:main"
 raccoonbot-synthetic = "raccoonbot_game.tools.generate_synthetic_data:main"
 raccoonbot-validate-poses = "raccoonbot_game.tools.validate_pose_profile:main"
 
@@ -39,3 +45,6 @@ testpaths = ["tests"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+raccoonbot_game = ["web/*.html", "web/*.css", "web/*.js"]

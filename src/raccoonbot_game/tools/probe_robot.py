@@ -10,7 +10,7 @@ DEFAULT_PORT = "/dev/serial/by-id/usb-Robomation_Mini_Dongle+_CCC0C21B94C3-if00"
 
 
 def read_snapshot(robot: Any) -> dict[str, Any]:
-    """Read sensors only; this function never requests joint or gripper motion."""
+    """Read sensors without explicitly requesting a joint or gripper motion."""
     return {
         "encoders": robot.encoder(),
         "battery_v": robot.battery(),
@@ -50,8 +50,10 @@ def probe(
     robot = None
     snapshots: list[dict[str, Any]] = []
     try:
-        # The official package starts in speed mode with all four speeds at zero.
-        # No angle, home, pick, or place command is issued by this probe.
+        # No angle, home, pick, or place command is issued by this probe. On the
+        # tested RaccoonBot firmware, however, opening a new official-package
+        # connection can reset J1 toward 0 degrees. Treat connection itself as
+        # a potentially visible hardware action.
         robot = robot_factory(port_name=port)
         if official_connection_state(robot) is False:
             raise RuntimeError("Mini Dongle+ is open, but no RaccoonBot is paired")
@@ -69,7 +71,7 @@ def probe(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="RaccoonBot에 이동 명령을 보내지 않고 연결 및 센서 값 확인"
+        description="명시적 이동 명령 없이 RaccoonBot 연결 및 센서 값 확인"
     )
     parser.add_argument("--port", default=DEFAULT_PORT)
     parser.add_argument("--samples", type=int, default=5)
@@ -85,7 +87,11 @@ def main() -> None:
     except ImportError as exc:
         raise SystemExit("robomation package is not installed") from exc
 
-    print(f"connecting port={args.port} (speed=0; no pose or gripper command)", flush=True)
+    print(
+        f"connecting port={args.port} (no explicit pose or gripper command; "
+        "connection may reset J1 toward 0deg)",
+        flush=True,
+    )
     probe(
         RaccoonBot,
         port=args.port,

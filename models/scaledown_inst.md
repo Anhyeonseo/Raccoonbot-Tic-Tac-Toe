@@ -1,3 +1,23 @@
-RaccoonBot was unable to reach the farthest two corner tiles with the gripper facing downwards.
+# 3D 모델 축소 및 출력 안내
 
-Scale down all stl parts by a factor of 5/7 (Board Size 21cm -> 15cm)
+초기 210mm 보드에서는 RaccoonBot 그리퍼를 보드 면에 수직으로 유지한 채 가장 먼
+두 모서리에 도달하기 어려웠습니다. 최종 소형 보드는 선형 치수를 `5/7`로 축소해
+약 150mm 크기로 사용했습니다.
+
+## 파일
+
+- `Board Main.step`: 3×3 보드
+- `Cam Tower.step`: 고정 카메라 거치대
+- `X.step`, `O.step`: 빨강·노랑 말 모델
+
+## 출력 전 확인
+
+1. CAD 또는 슬라이서에서 모든 관련 부품에 같은 축척을 적용합니다.
+2. 보드 최종 외곽 크기가 약 150mm인지 확인합니다.
+3. 말이 각 셀 안에서 충분한 여유를 가지는지 확인합니다.
+4. 카메라 거치대와 보드가 움직이지 않도록 동일한 베이스에 고정합니다.
+5. 보드·거치대·로봇 상대 위치가 바뀌면 `vision.json`과 로봇 자세를 다시
+   캘리브레이션합니다.
+
+STEP 파일의 단위는 CAD 프로그램에서 불러온 뒤 치수로 확인하세요. 슬라이서의
+자동 단위 변환을 그대로 신뢰하지 않습니다.

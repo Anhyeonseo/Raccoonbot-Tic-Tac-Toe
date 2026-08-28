@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>RaccoonBot 3말 잇기</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header>
+        <p class="eyebrow">VISION ROBOT GAME</p>
+        <h1>라쿤봇 <span>3말 잇기</span></h1>
+        <div class="header-actions">
+          <div class="mode-badge" id="difficulty">AI 쉬움</div>
+          <div id="stage" class="stage">준비</div>
+        </div>
+      </header>
+
+      <nav class="view-tabs" aria-label="화면 선택">
+        <button id="show-game" class="view-tab active" type="button">게임 운영</button>
+        <button id="show-calibration" class="view-tab" type="button">현장 캘리브레이션</button>
+      </nav>
+
+      <section id="game-view" class="game-area" aria-label="게임 현황">
+        <div id="board" class="board" aria-label="3×3 보드"></div>
+        <aside class="panel">
+          <div class="legend">
+            <div><i class="disc human"></i><span>나 · 빨강</span></div>
+            <div><i class="disc robot"></i><span>라쿤봇 · 노랑</span></div>
+          </div>
+          <div class="message-box">
+            <p class="label">지금 할 일</p>
+            <p id="message" class="message">Jetson에 연결하는 중입니다.</p>
+          </div>
+          <button id="submit" class="primary" disabled>내 차례 완료</button>
+          <button id="start" class="secondary" disabled>새 게임</button>
+          <div class="operator-actions">
+            <button id="stop" class="danger" disabled>게임 중단</button>
+            <button id="reset" class="quiet" disabled>화면 초기화</button>
+          </div>
+          <p class="safety">라쿤봇이 움직일 때는 보드와 로봇에 손을 대지 마세요.</p>
+          <p class="safety strong">게임 중단은 물리 비상정지가 아닙니다. 현재 관절 이동이 끝난 뒤 다음 명령 전에 멈춥니다.</p>
+        </aside>
+      </section>
+
+      <section id="calibration-view" class="calibration-view hidden" aria-label="현장 캘리브레이션">
+        <aside class="calibration-guide">
+          <p class="label">현장 설치 도구</p>
+          <h2>카메라 재캘리브레이션</h2>
+          <ol>
+              <li>팔이 보드를 가리면 게임 탭의 새 게임으로 관찰 자세에 복귀한 뒤 게임 중단·화면 초기화를 합니다.</li>
+              <li>보드 전체가 보이도록 카메라와 판을 고정합니다.</li>
+            <li>빨간 말과 노란 말을 보드 안 서로 다른 칸에 하나씩 놓습니다.</li>
+            <li>사진 촬영 후 순서대로 여섯 점을 클릭합니다.</li>
+            <li>미리보기의 격자와 9칸 판정을 확인한 뒤 저장합니다.</li>
+          </ol>
+          <div class="calibration-status">
+            <p class="label">다음 선택</p>
+            <p id="calibration-next">사진을 먼저 촬영하세요.</p>
+          </div>
+          <button id="calibration-capture" class="primary" type="button">카메라 사진 촬영</button>
+          <div class="operator-actions calibration-actions">
+            <button id="calibration-clear" class="quiet" type="button" disabled>점 다시 선택</button>
+            <button id="calibration-preview-button" class="secondary compact" type="button" disabled>미리보기 생성</button>
+          </div>
+          <button id="calibration-save" class="save" type="button" disabled>검증값 저장 확정</button>
+          <p id="calibration-message" class="calibration-message">저장 전까지 기존 vision.json은 변경되지 않습니다.</p>
+        </aside>
+        <div class="calibration-workspace">
+          <div class="canvas-wrap">
+            <canvas id="calibration-canvas" aria-label="카메라 캘리브레이션 사진"></canvas>
+            <p id="calibration-placeholder">촬영된 이미지가 여기에 표시됩니다.</p>
+          </div>
+          <div class="preview-card">
+            <div>
+              <p class="label">워프 및 9칸 판정 미리보기</p>
+              <p id="calibration-result">여섯 점을 선택한 뒤 미리보기를 생성하세요.</p>
+            </div>
+            <img id="calibration-preview-image" alt="캘리브레이션 워프 미리보기">
+          </div>
+        </div>
+      </section>
+    </main>
+    <script src="/app.js"></script>
+  </body>
+</html>

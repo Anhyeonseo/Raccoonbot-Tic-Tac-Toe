@@ -7,6 +7,7 @@ from raccoonbot_game.game import Action, GameResult, Player
 from raccoonbot_game.tools.play_hardware import (
     capture_stable_board,
     format_action,
+    move_to_observation,
     reconstruct_placement_game,
     require_empty_board,
     result_message,
@@ -40,6 +41,14 @@ class FakeObserver:
         return FakeObservation(next(self.boards))
 
 
+class FakeDriver:
+    def __init__(self):
+        self.moves = []
+
+    def move_to(self, pose):
+        self.moves.append(pose)
+
+
 def test_capture_stable_board_requires_repeated_matching_frames() -> None:
     empty = (None,) * 9
     yellow_at_nine = (None,) * 8 + (Player.ROBOT,)
@@ -54,6 +63,14 @@ def test_capture_stable_board_requires_repeated_matching_frames() -> None:
 
     assert board == yellow_at_nine
     assert warped.shape == (3, 3, 3)
+
+
+def test_game_start_lifts_to_transit_before_camera_home() -> None:
+    driver = FakeDriver()
+
+    move_to_observation(driver)
+
+    assert driver.moves == ["transit", "home_high", "home"]
 
 
 def test_require_empty_board_reports_occupied_cells() -> None:

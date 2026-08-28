@@ -4,6 +4,7 @@
   "max_speed": 20,
   "poses": {
     "home": null,
+    "home_high": null,
     "transit": null,
     "cell_1_hover": null, "cell_1_grasp": null,
     "cell_2_hover": null, "cell_2_grasp": null,

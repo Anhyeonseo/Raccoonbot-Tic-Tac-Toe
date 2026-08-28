@@ -22,8 +22,9 @@ class MotionPlanner:
     """Emit a conservative pick-and-place sequence using taught pose names.
 
     ``home`` is the installation-specific camera-clear observation pose.
-    ``transit`` is a compact intermediate pose used before crossing between the
-    observation pose and any board/stock hover pose.
+    ``home_high`` is a camera-side elevated pose used before descending to
+    ``home``. ``transit`` is a compact intermediate pose used before crossing
+    between the observation side and any board/stock hover pose.
     """
 
     robot: RobotDriver
@@ -39,6 +40,7 @@ class MotionPlanner:
     def _pick_and_place(self, source: str, target: str) -> None:
         self.robot.move_to("home")
         self.robot.open_gripper()
+        self.robot.move_to("home_high")
         self.robot.move_to("transit")
         self.robot.move_to(f"{source}_hover")
         self.robot.move_to(f"{source}_grasp")
@@ -53,6 +55,7 @@ class MotionPlanner:
         self.robot.open_gripper()
         self.robot.move_to(f"{target}_hover")
         self.robot.move_to("transit")
+        self.robot.move_to("home_high")
         self.robot.move_to("home")
 
 

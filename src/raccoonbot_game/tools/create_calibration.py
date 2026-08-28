@@ -17,7 +17,13 @@ from raccoonbot_game.calibration import (
 WINDOW = "Calibration: TL, TR, BR, BL, RED, YELLOW (R=reset, Enter=save, Esc=quit)"
 
 
-def _hue_settings(image: np.ndarray, point: tuple[int, int], *, radius: int = 8) -> ColorSettings:
+def sample_hue_settings(
+    image: np.ndarray,
+    point: tuple[int, int],
+    *,
+    radius: int = 8,
+    base: ColorSettings | None = None,
+) -> ColorSettings:
     x, y = point
     y0, y1 = max(0, y - radius), min(image.shape[0], y + radius + 1)
     x0, x1 = max(0, x - radius), min(image.shape[1], x + radius + 1)
@@ -33,7 +39,12 @@ def _hue_settings(image: np.ndarray, point: tuple[int, int], *, radius: int = 8)
         intervals = ((low, 179), (0, high - 180))
     else:
         intervals = ((low, high),)
-    return ColorSettings(hue_intervals=intervals, saturation_min=80, value_min=50)
+    return ColorSettings(
+        hue_intervals=intervals,
+        saturation_min=base.saturation_min if base else 80,
+        value_min=base.value_min if base else 50,
+        pixel_ratio_min=base.pixel_ratio_min if base else 0.08,
+    )
 
 
 def collect_points(image: np.ndarray) -> list[tuple[int, int]] | None:
@@ -84,8 +95,8 @@ def main() -> None:
     calibration = VisionCalibration(
         camera=CameraSettings(width=image.shape[1], height=image.shape[0]),
         board=BoardSettings(corners=corners, rotation=args.rotation),
-        human_color=_hue_settings(image, points[4]),
-        robot_color=_hue_settings(image, points[5]),
+        human_color=sample_hue_settings(image, points[4]),
+        robot_color=sample_hue_settings(image, points[5]),
     )
     calibration.save(args.output)
     print(f"캘리브레이션을 저장했습니다: {args.output}")

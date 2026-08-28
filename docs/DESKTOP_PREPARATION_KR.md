@@ -1,6 +1,6 @@
-# SSD 도착 전 데스크톱 준비 결과와 사용법
+# 데스크톱 개발 및 하드웨어 없는 검증
 
-## 지금 완료 가능한 범위
+## 하드웨어 없이 가능한 범위
 
 실제 카메라 영상, 실제 보드 치수, 실제 말 높이, Mini Dongle+가 없어도 아래 항목은 데스크톱에서 개발·검증할 수 있습니다.
 
@@ -87,9 +87,10 @@ raccoonbot-calibrate frame.png config/vision.json
 
 ## 로봇 자세 파일
 
-`config/robot_poses.template.json`에는 필요한 26개 자세 이름이 모두 있습니다.
+`config/robot_poses.template.json`에는 필요한 27개 자세 이름이 모두 있습니다.
 
 - home 1개
+- home_high 1개
 - transit 1개
 - 9칸 × hover/grasp = 18개
 - 노랑 말 대기 위치 3개 × hover/grasp = 6개
@@ -102,9 +103,9 @@ raccoonbot-validate-poses config/robot_poses.json
 
 템플릿의 `null`은 의도적으로 실행 불가능합니다. 임의의 0도 값을 넣어 로봇을 움직이지 마세요.
 
-## SSD와 실제 하드웨어가 있어야만 할 수 있는 것
+## 실제 Jetson과 하드웨어가 필요한 범위
 
-아래 항목은 지금 억지로 진행하지 않는 것이 맞습니다.
+아래 항목은 데스크톱 모의 시험으로 대체할 수 없으며 실제 설치에서 수행합니다.
 
 - JetPack 설치 및 Jetson 첫 부팅
 - Jetson에서 `robomation` 패키지와 Mini Dongle+ 호환성 확인
@@ -114,10 +115,13 @@ raccoonbot-validate-poses config/robot_poses.json
 - 9칸/3개 stock의 실제 joint teaching
 - 말의 지름·높이·마찰에 맞춘 grasp 높이와 그리퍼 대기시간 조정
 - 충돌 없는 속도와 hover 높이 검증
-- 연속 30~50게임 내구 시험
+- 사용자 UI 기반 최종 한 게임과 오류 복구 리허설
 
 Jetson 부팅 후에는 `docs/JETSON_BRINGUP_KR.md`의 순서로 이어갑니다.
 
-## 구현상 확인이 필요한 한 가지
+## 실제 장비 확인 결과
 
-공식 가이드는 Mini Dongle+를 이용한 BLE/웹 시리얼 연결과 Python 제어를 명시하고, 현재 공식 Python 패키지는 Linux 형식의 포트 이름과 `RaccoonBot` 클래스를 제공합니다. 다만 Jetson ARM64에서 실제 동글이 정상 열리는지는 하드웨어에서 반드시 확인해야 합니다. 따라서 실제 드라이버는 준비하되, 호환성을 확인하기 전까지 자동 실행 서비스로 등록하지 않습니다.
+Jetson ARM64에서 Mini Dongle+ 직렬 장치와 공식 `robomation.RaccoonBot` 연결을
+확인했습니다. 배터리·BLE·DC 그리퍼 조회, 직접 관절 이동, teaching, 1~9번 연속
+운반과 실제 게임을 완료했습니다. 다른 JetPack 또는 공식 패키지 버전에서는 API와
+장치 경로가 달라질 수 있으므로 `docs/JETSON_BRINGUP_KR.md`의 진단부터 반복합니다.

@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import random
 import time
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +15,7 @@ from raccoonbot_game.game import Action, Game, GameResult, Player
 from raccoonbot_game.robot.motion import MotionPlanner
 from raccoonbot_game.robot.pose_profile import RobotPoseProfile
 from raccoonbot_game.robot.robomation_driver import RobomationDriver
+from raccoonbot_game.strategy import AiPolicy
 from raccoonbot_game.tools.live_board import _open_camera, format_board
 from raccoonbot_game.tools.probe_robot import DEFAULT_PORT, official_connection_state
 from raccoonbot_game.tools.smoke_test_gripper import wait_for_end_effector
@@ -23,6 +25,30 @@ from raccoonbot_game.vision.board_observer import (
     BoardStateStabilizer,
     GameBoard,
 )
+
+
+WaitForSubmit = Callable[[str], None]
+StatusCallback = Callable[[str, str, GameBoard | None], None]
+CancellationCheck = Callable[[], None]
+
+
+def _console_wait_for_submit(prompt: str) -> None:
+    input(prompt)
+
+
+def _ignore_status(_stage: str, _message: str, _board: GameBoard | None) -> None:
+    return
+
+
+def _ignore_cancellation() -> None:
+    return
+
+
+def move_to_observation(driver: Any) -> None:
+    """Return through elevated poses before entering the camera home pose."""
+    driver.move_to("transit")
+    driver.move_to("home_high")
+    driver.move_to("home")
 
 
 def capture_stable_board(
@@ -121,9 +147,14 @@ def run_game(
     port: str,
     device: int | None,
     joint_step_degrees: float,
-    seed: int,
+    motion_mode: str,
+    seed: int | None,
     capture_dir: Path | None,
+    ai_policy: AiPolicy | None = None,
     resume_placement: bool = False,
+    wait_for_submit: WaitForSubmit = _console_wait_for_submit,
+    status_callback: StatusCallback = _ignore_status,
+    cancellation_check: CancellationCheck = _ignore_cancellation,
 ) -> GameResult:
     profile = RobotPoseProfile.load(profile_path)
     calibration = VisionCalibration.load(calibration_path)
@@ -148,6 +179,8 @@ def run_game(
             profile,
             robot=robot,
             joint_step_degrees=joint_step_degrees,
+            interpolate_moves=motion_mode == "interpolated",
+            before_action=cancellation_check,
         )
         motion = MotionPlanner(driver)
         observer = BoardObserver(calibration)
@@ -155,14 +188,18 @@ def run_game(
 
         print(
             f"장비 준비 완료: battery={battery}V speed={profile.max_speed:g} "
-            f"joint_step={joint_step_degrees:g}° camera=/dev/video{camera_device}",
+            f"motion={motion_mode} joint_step={joint_step_degrees:g}° "
+            f"camera=/dev/video{camera_device}",
             flush=True,
         )
-        print("카메라 관찰 자세로 이동합니다. 작업 영역에서 손을 빼주세요.", flush=True)
-        driver.move_to("home")
+        message = "카메라 관찰 자세로 이동합니다. 작업 영역에서 손을 빼주세요."
+        print(message, flush=True)
+        status_callback("starting", message, None)
+        move_to_observation(driver)
         time.sleep(0.5)
         initial, warped = capture_stable_board(capture, observer, warmup_frames=15)
         print(f"초기 보드: {format_board(initial)}", flush=True)
+        status_callback("observing", "초기 보드를 확인했습니다.", initial)
         _save_warped(capture_dir, 0, "initial", warped)
         if any(cell is not None for cell in initial):
             if not resume_placement:
@@ -175,11 +212,18 @@ def run_game(
             )
         else:
             game = Game()
-        session = GameSession(motion, game=game, rng=random.Random(seed))
+        session = GameSession(
+            motion,
+            game=game,
+            policy=ai_policy,
+            rng=random.Random(seed),
+        )
 
         capture_index = 1
         if session.game.result is GameResult.IN_PROGRESS and session.game.turn is Player.ROBOT:
-            print("재개된 로봇 차례를 실행합니다. 작업 영역에 손을 넣지 마세요.", flush=True)
+            message = "재개된 로봇 차례를 실행합니다. 작업 영역에 손을 넣지 마세요."
+            print(message, flush=True)
+            status_callback("robot_moving", message, tuple(session.game.board))
             pending = session.play_robot_turn()
             print(
                 f"라쿤봇 수: {format_action(pending.decision.action)} "
@@ -187,6 +231,11 @@ def run_game(
                 flush=True,
             )
             while True:
+                status_callback(
+                    "robot_verifying",
+                    "라쿤봇의 이동 결과를 카메라로 확인하고 있습니다.",
+                    pending.expected_board,
+                )
                 actual, warped = capture_stable_board(capture, observer)
                 print(f"로봇 수 관측: {format_board(actual)}", flush=True)
                 _save_warped(capture_dir, capture_index, "robot-resume", warped)
@@ -196,7 +245,7 @@ def run_game(
                     break
                 except RobotVerificationError as exc:
                     print(f"자동 검증 실패: {exc}", flush=True)
-                    input("운영자가 보드를 확인한 뒤 재촬영하려면 Enter를 누르세요: ")
+                    wait_for_submit("자동 검증에 실패했습니다. 보드를 확인한 뒤 다시 촬영하세요.")
 
         while session.game.result is GameResult.IN_PROGRESS:
             print("\n사람 차례입니다.", flush=True)
@@ -204,17 +253,26 @@ def run_game(
                 prompt = "빨간 말 하나를 빈칸에 놓고 손을 완전히 뺀 뒤 Enter를 누르세요: "
             else:
                 prompt = "빨간 말 하나를 원하는 빈칸으로 옮기고 손을 뺀 뒤 Enter를 누르세요: "
-            input(prompt)
+            status_callback("waiting_human", prompt.removesuffix(": "), tuple(session.game.board))
+            wait_for_submit(prompt)
 
+            status_callback(
+                "observing_human",
+                "사람의 수를 카메라로 확인하고 있습니다.",
+                tuple(session.game.board),
+            )
             observed, warped = capture_stable_board(capture, observer)
             print(f"사람 수 관측: {format_board(observed)}", flush=True)
             _save_warped(capture_dir, capture_index, "human", warped)
             capture_index += 1
             try:
-                print("라쿤봇이 생각하고 움직입니다. 작업 영역에 손을 넣지 마세요.", flush=True)
+                message = "라쿤봇이 생각하고 움직입니다. 작업 영역에 손을 넣지 마세요."
+                print(message, flush=True)
+                status_callback("robot_moving", message, observed)
                 pending = session.accept_human_board(observed)
             except ValueError as exc:
                 print(f"사람 수를 인정할 수 없습니다: {exc}", flush=True)
+                status_callback("human_error", f"사람의 수를 인정할 수 없습니다: {exc}", observed)
                 continue
 
             if pending is None:
@@ -227,6 +285,11 @@ def run_game(
 
             time.sleep(0.5)
             while True:
+                status_callback(
+                    "robot_verifying",
+                    "라쿤봇의 이동 결과를 카메라로 확인하고 있습니다.",
+                    pending.expected_board,
+                )
                 actual, warped = capture_stable_board(capture, observer)
                 print(f"로봇 수 관측: {format_board(actual)}", flush=True)
                 _save_warped(capture_dir, capture_index, "robot", warped)
@@ -236,10 +299,15 @@ def run_game(
                     break
                 except RobotVerificationError as exc:
                     print(f"자동 검증 실패: {exc}", flush=True)
-                    input("운영자가 보드를 확인한 뒤 재촬영하려면 Enter를 누르세요: ")
+                    wait_for_submit("자동 검증에 실패했습니다. 보드를 확인한 뒤 다시 촬영하세요.")
 
         print(f"\n게임 종료: {result_message(session.game.result)}", flush=True)
         print(f"최종 보드: {format_board(tuple(session.game.board))}", flush=True)
+        status_callback(
+            "finished",
+            result_message(session.game.result),
+            tuple(session.game.board),
+        )
         return session.game.result
     finally:
         if capture is not None:
@@ -258,6 +326,15 @@ def main() -> None:
     parser.add_argument("--port", default=DEFAULT_PORT)
     parser.add_argument("--device", type=int)
     parser.add_argument("--joint-step", type=float, default=6.0)
+    parser.add_argument(
+        "--motion-mode",
+        choices=("interpolated", "direct"),
+        default="direct",
+        help=(
+            "direct는 공식 API에 최종 자세를 전달하고 도달 실패 시 최대 2회 재전송"
+            "(기본값), interpolated는 작은 각도 보간"
+        ),
+    )
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--capture-dir", type=Path, default=Path("work/game-captures"))
     parser.add_argument("--resume-placement", action="store_true")
@@ -275,6 +352,7 @@ def main() -> None:
             port=args.port,
             device=args.device,
             joint_step_degrees=args.joint_step,
+            motion_mode=args.motion_mode,
             seed=args.seed,
             capture_dir=args.capture_dir,
             resume_placement=args.resume_placement,

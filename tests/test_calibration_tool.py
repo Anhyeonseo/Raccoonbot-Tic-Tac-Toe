@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-from raccoonbot_game.tools.create_calibration import _hue_settings
+from raccoonbot_game.tools.create_calibration import sample_hue_settings
 
 
 def _solid_bgr(hue: int) -> np.ndarray:
@@ -10,10 +10,10 @@ def _solid_bgr(hue: int) -> np.ndarray:
 
 
 def test_hue_sampling_builds_regular_interval() -> None:
-    settings = _hue_settings(_solid_bgr(28), (20, 20))
+    settings = sample_hue_settings(_solid_bgr(28), (20, 20))
     assert settings.hue_intervals == ((18, 38),)
 
 
 def test_hue_sampling_wraps_red_around_zero() -> None:
-    settings = _hue_settings(_solid_bgr(2), (20, 20))
+    settings = sample_hue_settings(_solid_bgr(2), (20, 20))
     assert settings.hue_intervals == ((0, 12), (172, 179))

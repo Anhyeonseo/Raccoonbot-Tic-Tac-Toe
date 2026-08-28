@@ -106,6 +106,33 @@ def test_manual_teaching_can_move_to_saved_start_pose_before_release(tmp_path) -
     assert robot.calls.index(("speed", 8)) < robot.calls.index(("motor", -1, False))
 
 
+def test_manual_teaching_can_move_directly_to_saved_start_pose(tmp_path) -> None:
+    template = tmp_path / "template.json"
+    output = tmp_path / "poses.json"
+    make_template(template)
+    robot = FakeRobot(port_name="/dev/test")
+    target = [2.0, -11.0, -139.0, 59.0]
+
+    teach_pose(
+        lambda **_kwargs: robot,
+        template=template,
+        output=output,
+        pose_name="home",
+        port="/dev/test",
+        capture_current=False,
+        timeout_s=1,
+        start_pose=target,
+        start_speed=30,
+        start_motion_mode="direct",
+    )
+
+    angle_calls = [call for call in robot.calls if call[0] == "angles"]
+    assert angle_calls == [("angles", target, True)]
+    assert robot.calls.index(("angles", target, True)) < robot.calls.index(
+        ("motor", -1, False)
+    )
+
+
 def test_capture_current_never_releases_motors(tmp_path) -> None:
     template = tmp_path / "template.json"
     output = tmp_path / "poses.json"

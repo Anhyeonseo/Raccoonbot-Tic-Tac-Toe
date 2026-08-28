@@ -8,7 +8,7 @@ from pathlib import Path
 JointPose = tuple[float, float, float, float]
 JOINT_LIMITS = ((-120.0, 120.0), (-90.0, 30.0), (-150.0, 0.0), (-105.0, 105.0))
 REQUIRED_POSES = frozenset(
-    {"home", "transit"}
+    {"home", "home_high", "transit"}
     | {f"cell_{cell}_{level}" for cell in range(1, 10) for level in ("hover", "grasp")}
     | {f"stock_{stock}_{level}" for stock in range(1, 4) for level in ("hover", "grasp")}
 )

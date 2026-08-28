@@ -87,7 +87,10 @@ def teach_pose(
     timeout_s: float,
     start_pose: list[float] | None = None,
     start_speed: float = 10.0,
+    start_motion_mode: str = "interpolated",
 ) -> list[float]:
+    if start_motion_mode not in {"interpolated", "direct"}:
+        raise ValueError("start_motion_mode must be interpolated or direct")
     robot = None
     motors_released = False
     try:
@@ -106,8 +109,12 @@ def teach_pose(
                 robot.angle_max_speed(start_speed)
                 start_pose = validate_angles(start_pose)
                 print(f"저장된 시작 자세로 이동합니다: {start_pose}", flush=True)
-                steps = move_joints_interpolated(robot, start_pose)
-                print(f"시작 자세 도착: interpolated steps={steps}", flush=True)
+                if start_motion_mode == "direct":
+                    robot.set_angle_joints(*start_pose, wait=True)
+                    print("시작 자세 도착: direct", flush=True)
+                else:
+                    steps = move_joints_interpolated(robot, start_pose)
+                    print(f"시작 자세 도착: interpolated steps={steps}", flush=True)
             print(
                 "모터를 해제합니다. 팔을 손으로 받친 채 천천히 자세를 맞추고 "
                 "로봇의 Teach 버튼을 한 번 누르세요.",
@@ -145,6 +152,12 @@ def main() -> None:
     )
     parser.add_argument("--start-speed", type=float, default=10.0)
     parser.add_argument(
+        "--start-motion-mode",
+        choices=("interpolated", "direct"),
+        default="interpolated",
+        help="저장된 시작 자세까지 이동하는 방식",
+    )
+    parser.add_argument(
         "--capture-current",
         action="store_true",
         help="모터를 해제하지 않고 현재 엔코더 값을 바로 저장",
@@ -179,6 +192,7 @@ def main() -> None:
         timeout_s=args.timeout,
         start_pose=load_pose(args.output, args.start_from) if args.start_from else None,
         start_speed=args.start_speed,
+        start_motion_mode=args.start_motion_mode,
     )
 
 
