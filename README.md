@@ -1,4 +1,4 @@
-# RaccoonBot Vision Three-in-a-Row
+# RaccoonBot Vision Tic-Tac-Toe
 
 [![tests](https://github.com/Anhyeonseo/Raccoonbot-Vision-Three-in-a-row/actions/workflows/tests.yml/badge.svg)](https://github.com/Anhyeonseo/Raccoonbot-Vision-Three-in-a-row/actions/workflows/tests.yml)
 
