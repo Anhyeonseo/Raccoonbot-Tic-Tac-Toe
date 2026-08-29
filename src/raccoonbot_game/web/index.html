@@ -49,17 +49,18 @@
           <p class="label">현장 설치 도구</p>
           <h2>카메라 재캘리브레이션</h2>
           <ol>
-              <li>팔이 보드를 가리면 게임 탭의 새 게임으로 관찰 자세에 복귀한 뒤 게임 중단·화면 초기화를 합니다.</li>
-              <li>보드 전체가 보이도록 카메라와 판을 고정합니다.</li>
-            <li>빨간 말과 노란 말을 보드 안 서로 다른 칸에 하나씩 놓습니다.</li>
-            <li>사진 촬영 후 순서대로 여섯 점을 클릭합니다.</li>
-            <li>미리보기의 격자와 9칸 판정을 확인한 뒤 저장합니다.</li>
+            <li>게임을 중단하고 보드와 로봇 주변에서 손을 뺍니다.</li>
+            <li>보드 전체가 보이도록 카메라와 판을 고정합니다.</li>
+            <li>보드 위의 말을 모두 치워 빈 판으로 만듭니다.</li>
+            <li>아래 버튼을 누르면 팔이 관찰 자세로 이동한 뒤 사진을 촬영합니다.</li>
+            <li>순서대로 보드 바깥 테두리의 네 모서리를 클릭합니다.</li>
+            <li>미리보기의 격자를 확인합니다. 검증된 빨강·노랑 프로필은 그대로 유지됩니다.</li>
           </ol>
           <div class="calibration-status">
             <p class="label">다음 선택</p>
             <p id="calibration-next">사진을 먼저 촬영하세요.</p>
           </div>
-          <button id="calibration-capture" class="primary" type="button">카메라 사진 촬영</button>
+          <button id="calibration-capture" class="primary" type="button">관찰 자세로 이동하고 촬영</button>
           <div class="operator-actions calibration-actions">
             <button id="calibration-clear" class="quiet" type="button" disabled>점 다시 선택</button>
             <button id="calibration-preview-button" class="secondary compact" type="button" disabled>미리보기 생성</button>
@@ -75,7 +76,7 @@
           <div class="preview-card">
             <div>
               <p class="label">워프 및 9칸 판정 미리보기</p>
-              <p id="calibration-result">여섯 점을 선택한 뒤 미리보기를 생성하세요.</p>
+              <p id="calibration-result">네 모서리를 선택한 뒤 미리보기를 생성하세요.</p>
             </div>
             <img id="calibration-preview-image" alt="캘리브레이션 워프 미리보기">
           </div>

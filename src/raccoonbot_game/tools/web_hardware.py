@@ -12,10 +12,14 @@ from urllib.parse import urlsplit
 from raccoonbot_game.app.web_calibration import WebCalibrationController
 from raccoonbot_game.app.web_controller import WebGameController
 from raccoonbot_game.calibration import VisionCalibration
+from raccoonbot_game.robot.interface import RobotDriver
+from raccoonbot_game.robot.pose_profile import RobotPoseProfile
+from raccoonbot_game.robot.robomation_driver import RobomationDriver
 from raccoonbot_game.strategy import AiPolicy
 from raccoonbot_game.tools.live_board import _open_camera
 from raccoonbot_game.tools.play_hardware import run_game
-from raccoonbot_game.tools.probe_robot import DEFAULT_PORT
+from raccoonbot_game.tools.probe_robot import DEFAULT_PORT, official_connection_state
+from raccoonbot_game.tools.smoke_test_motion import wait_for_battery
 
 
 WEB_ROOT = Path(__file__).resolve().parents[1] / "web"
@@ -207,7 +211,14 @@ def main() -> None:
     )
     calibration_controller = WebCalibrationController(
         args.calibration,
-        lambda: _capture_calibration_frame(args.calibration, args.device),
+        lambda: _capture_calibration_frame(
+            args.calibration,
+            args.device,
+            profile_path=args.profile,
+            robot_port=args.robot_port,
+            joint_step_degrees=args.joint_step,
+            motion_mode=args.motion_mode,
+        ),
     )
     server = ThreadingHTTPServer(
         (args.host, args.web_port),
@@ -230,11 +241,55 @@ def main() -> None:
         server_thread.join()
 
 
-def _capture_calibration_frame(path: Path, device: int | None) -> Any:
+def move_to_calibration_home(driver: RobotDriver) -> None:
+    """Move through the collision-safe route while the camera view stays usable."""
+
+    for pose_name in ("transit", "home_high", "home"):
+        driver.move_to(pose_name)
+
+
+def _capture_calibration_frame(
+    path: Path,
+    device: int | None,
+    *,
+    profile_path: Path,
+    robot_port: str,
+    joint_step_degrees: float,
+    motion_mode: str,
+) -> Any:
     calibration = VisionCalibration.load(path)
     camera_device = calibration.camera.device if device is None else device
-    capture = _open_camera(calibration, camera_device)
+    profile = RobotPoseProfile.load(profile_path)
+    robot = None
+    driver = None
+    capture = None
     try:
+        try:
+            from robomation import RaccoonBot
+        except ImportError as exc:
+            raise RuntimeError("Jetson에 robomation 패키지가 설치되어 있지 않습니다") from exc
+
+        robot = RaccoonBot(port_name=robot_port)
+        if official_connection_state(robot) is False:
+            raise RuntimeError("Mini Dongle+는 열렸지만 RaccoonBot과 연결되지 않았습니다")
+        battery = wait_for_battery(robot)
+        if battery < 3.3:
+            raise RuntimeError(
+                f"배터리가 부족해 캘리브레이션 자세로 이동할 수 없습니다: {battery}V"
+            )
+
+        driver = RobomationDriver(
+            profile,
+            robot=robot,
+            joint_step_degrees=joint_step_degrees,
+            interpolate_moves=motion_mode == "interpolated",
+        )
+        move_to_calibration_home(driver)
+
+        # Capture before disposing the robot. The tested official connection
+        # resets the arm toward its basic pose when it closes, which can hide
+        # the board and invalidate the selected corners.
+        capture = _open_camera(calibration, camera_device)
         frame = None
         for _ in range(30):
             ok, candidate = capture.read()
@@ -250,7 +305,16 @@ def _capture_calibration_frame(path: Path, device: int | None) -> Any:
             )
         return frame
     finally:
-        capture.release()
+        try:
+            if capture is not None:
+                capture.release()
+        finally:
+            try:
+                if driver is not None:
+                    driver.stop()
+            finally:
+                if robot is not None:
+                    robot.dispose()
 
 
 if __name__ == "__main__":

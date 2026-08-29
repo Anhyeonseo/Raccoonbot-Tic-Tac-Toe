@@ -43,7 +43,7 @@ def sample_hue_settings(
         hue_intervals=intervals,
         saturation_min=base.saturation_min if base else 80,
         value_min=base.value_min if base else 50,
-        pixel_ratio_min=base.pixel_ratio_min if base else 0.08,
+        pixel_ratio_min=base.pixel_ratio_min if base else 0.04,
     )
 
 

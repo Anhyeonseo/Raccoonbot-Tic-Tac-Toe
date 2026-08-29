@@ -38,7 +38,7 @@ const stageNames = {
   error: "확인 필요",
 };
 
-const calibrationLabels = ["좌상단(TL)", "우상단(TR)", "우하단(BR)", "좌하단(BL)", "빨간 말 중앙", "노란 말 중앙"];
+const calibrationLabels = ["좌상단(TL)", "우상단(TR)", "우하단(BR)", "좌하단(BL)"];
 let currentView = "game";
 let lastGameState = null;
 let calibrationImage = null;
@@ -175,9 +175,9 @@ function updateCalibrationControls() {
   if (!hasImage) {
     calibrationNext.textContent = "사진을 먼저 촬영하세요.";
   } else if (!complete) {
-    calibrationNext.textContent = `${calibrationPoints.length + 1}/6 · ${calibrationLabels[calibrationPoints.length]}`;
+    calibrationNext.textContent = `${calibrationPoints.length + 1}/4 · ${calibrationLabels[calibrationPoints.length]}`;
   } else {
-    calibrationNext.textContent = "6/6 완료 · 미리보기를 생성하세요.";
+    calibrationNext.textContent = "4/4 완료 · 미리보기를 생성하세요.";
   }
 }
 
@@ -200,7 +200,7 @@ function drawCalibrationCanvas() {
   }
 
   calibrationPoints.forEach(([x, y], index) => {
-    calibrationContext.fillStyle = index === 4 ? "#ed2d38" : index === 5 ? "#f1d225" : "#45ff7a";
+    calibrationContext.fillStyle = "#45ff7a";
     calibrationContext.beginPath();
     calibrationContext.arc(x, y, Math.max(8, calibrationCanvas.width / 130), 0, Math.PI * 2);
     calibrationContext.fill();
@@ -213,7 +213,7 @@ calibrationCapture.addEventListener("click", async () => {
   calibrationCapture.disabled = true;
   calibrationSave.disabled = true;
   calibrationPreviewImage.classList.remove("ready");
-  setCalibrationMessage("카메라 사진을 촬영하고 있습니다…");
+  setCalibrationMessage("팔을 관찰 자세로 이동한 뒤 사진을 촬영하고 있습니다…");
   try {
     const result = await request("/api/calibration/capture", { method: "POST" });
     const image = new Image();
@@ -225,7 +225,7 @@ calibrationCapture.addEventListener("click", async () => {
       calibrationPlaceholder.classList.add("hidden");
       drawCalibrationCanvas();
       updateCalibrationControls();
-      setCalibrationMessage("사진 촬영 완료. 안내 순서대로 여섯 점을 클릭하세요.", "success");
+      setCalibrationMessage("사진 촬영 완료. 안내 순서대로 네 모서리를 클릭하세요.", "success");
     };
     image.onerror = () => setCalibrationMessage("촬영 이미지를 불러오지 못했습니다.", "error");
     image.src = `/api/calibration/frame.jpg?t=${Date.now()}`;
@@ -252,7 +252,7 @@ calibrationClear.addEventListener("click", () => {
   calibrationPoints = [];
   calibrationSave.disabled = true;
   calibrationPreviewImage.classList.remove("ready");
-  calibrationResult.textContent = "여섯 점을 선택한 뒤 미리보기를 생성하세요.";
+  calibrationResult.textContent = "네 모서리를 선택한 뒤 미리보기를 생성하세요.";
   drawCalibrationCanvas();
   updateCalibrationControls();
   setCalibrationMessage("점 선택을 초기화했습니다.");
@@ -261,7 +261,7 @@ calibrationClear.addEventListener("click", () => {
 calibrationPreviewButton.addEventListener("click", async () => {
   calibrationPreviewButton.disabled = true;
   calibrationSave.disabled = true;
-  setCalibrationMessage("워프와 색상 판정을 계산하고 있습니다…");
+  setCalibrationMessage("워프와 기존 색상 프로필 판정을 계산하고 있습니다…");
   try {
     const result = await request("/api/calibration/preview", {
       method: "POST",

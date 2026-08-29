@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import asdict
+
 import pytest
 
 from raccoonbot_game.app.web_calibration import WebCalibrationController
@@ -21,8 +23,6 @@ def _points():
         [599, 0],
         [599, 599],
         [0, 599],
-        [100, 100],
-        [500, 500],
     ]
 
 
@@ -38,6 +38,9 @@ def test_capture_preview_and_explicit_save_with_backup(tmp_path) -> None:
     preview = controller.preview({"points": _points()})
     assert preview["cells"][0]["label"] == "human"
     assert preview["cells"][8]["label"] == "robot"
+    original = default_synthetic_calibration(600)
+    assert preview["human_color"] == asdict(original.human_color)
+    assert preview["robot_color"] == asdict(original.robot_color)
     assert controller.image(preview=True).startswith(b"\xff\xd8")
 
     saved = controller.save()

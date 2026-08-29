@@ -31,7 +31,7 @@ class BoardSettings:
     corners: tuple[Point, Point, Point, Point]
     rotation: int = 0
     canonical_size: int = 600
-    cell_margin_ratio: float = 0.2
+    cell_margin_ratio: float = 0.15
 
     def __post_init__(self) -> None:
         if len(self.corners) != 4:
@@ -49,7 +49,7 @@ class ColorSettings:
     hue_intervals: tuple[HueInterval, ...]
     saturation_min: int = 100
     value_min: int = 60
-    pixel_ratio_min: float = 0.08
+    pixel_ratio_min: float = 0.04
 
     def __post_init__(self) -> None:
         if not self.hue_intervals:
@@ -92,7 +92,7 @@ class VisionCalibration:
             corners=tuple(tuple(point) for point in board_raw["corners"]),
             rotation=board_raw.get("rotation", 0),
             canonical_size=board_raw.get("canonical_size", 600),
-            cell_margin_ratio=board_raw.get("cell_margin_ratio", 0.2),
+            cell_margin_ratio=board_raw.get("cell_margin_ratio", 0.15),
         )
         return cls(
             camera=camera,
@@ -122,6 +122,5 @@ def _color_from_dict(raw: dict[str, Any]) -> ColorSettings:
         hue_intervals=tuple(tuple(interval) for interval in raw["hue_intervals"]),
         saturation_min=raw.get("saturation_min", 100),
         value_min=raw.get("value_min", 60),
-        pixel_ratio_min=raw.get("pixel_ratio_min", 0.08),
+        pixel_ratio_min=raw.get("pixel_ratio_min", 0.04),
     )
-

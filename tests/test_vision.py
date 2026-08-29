@@ -1,3 +1,4 @@
+import cv2
 import numpy as np
 
 from raccoonbot_game.calibration import (
@@ -46,6 +47,17 @@ def test_recovers_board_after_perspective_projection() -> None:
     assert observation.as_game_board() == state
 
 
+def test_detects_piece_placed_near_cell_edge() -> None:
+    image = render_board([E] * 9, cell_size=200)
+    cv2.circle(image, (35, 35), 25, (0, 0, 255), -1)
+    observer = BoardObserver(default_synthetic_calibration(600))
+
+    observation = observer.observe(image)
+
+    assert observation.cells[0].label.value == "human"
+    assert all(cell.label.value == "empty" for cell in observation.cells[1:])
+
+
 def test_stabilizer_requires_repeated_matching_states() -> None:
     state = (H, E, R, E, H, E, R, E, H)
     observer = BoardObserver(default_synthetic_calibration(600))
@@ -72,4 +84,3 @@ def test_invalid_image_shape_is_rejected() -> None:
         assert "BGR" in str(error)
     else:
         raise AssertionError("grayscale image should be rejected")
-

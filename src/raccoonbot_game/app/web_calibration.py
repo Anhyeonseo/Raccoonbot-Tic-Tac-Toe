@@ -11,13 +11,12 @@ import cv2
 import numpy as np
 
 from ..calibration import BoardSettings, CameraSettings, VisionCalibration
-from ..tools.create_calibration import sample_hue_settings
 from ..vision.board_observer import BoardObserver
 
 
 FrameProvider = Callable[[], np.ndarray]
 Point = tuple[int, int]
-POINT_LABELS = ("TL", "TR", "BR", "BL", "RED", "YELLOW")
+POINT_LABELS = ("TL", "TR", "BR", "BL")
 
 
 @dataclass(frozen=True, slots=True)
@@ -108,16 +107,8 @@ class WebCalibrationController:
         proposal = VisionCalibration(
             camera=camera,
             board=board,
-            human_color=sample_hue_settings(
-                frame,
-                points[4],
-                base=current.human_color,
-            ),
-            robot_color=sample_hue_settings(
-                frame,
-                points[5],
-                base=current.robot_color,
-            ),
+            human_color=current.human_color,
+            robot_color=current.robot_color,
         )
         observation = BoardObserver(proposal).observe(frame)
         cells = tuple(
@@ -166,9 +157,9 @@ class WebCalibrationController:
             self._busy = busy
 
 
-def _parse_points(raw: Any) -> tuple[Point, Point, Point, Point, Point, Point]:
-    if not isinstance(raw, list) or len(raw) != 6:
-        raise ValueError("TL, TR, BR, BL, RED, YELLOW 여섯 점이 필요합니다")
+def _parse_points(raw: Any) -> tuple[Point, Point, Point, Point]:
+    if not isinstance(raw, list) or len(raw) != 4:
+        raise ValueError("TL, TR, BR, BL 네 점이 필요합니다")
     points: list[Point] = []
     for value in raw:
         if not isinstance(value, list) or len(value) != 2:
