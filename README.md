@@ -13,7 +13,7 @@ SSH 터널로 연결된 UI만 사용합니다. 인터넷이 없는 행사장에�
 ## 시연
 
 <p align="center">
-  <a href="https://drive.google.com/file/d/1d0tjxeQ3BWgaXYCpIjII7FlVT4bhdUxd/view?usp=drive_link">
+  <a href="https://drive.google.com/file/d/1xNg3D9k_j_lhx_YUd1UXeeCyteG-U6uL/view?usp=drive_link">
     <img src="assets/demo-thumbnail.jpg" width="420" alt="RaccoonBot 3말 잇기 시연 영상 썸네일">
   </a>
 </p>
